@@ -1,5 +1,5 @@
 import { useGameStore, Anomaly } from '../store/gameStore';
-import { ANOMALY_DEFINITIONS, AnomalyDefinition } from './anomalyDefinitions';
+import { ANOMALY_DEFINITIONS } from './anomalyDefinitions';
 
 export class AnomalyEngine {
   private timer: NodeJS.Timeout | null = null;
@@ -28,12 +28,25 @@ export class AnomalyEngine {
   }
 
   private getSpawnInterval(difficulty: 'EASY' | 'NORMAL' | 'HARD' | 'NIGHTMARE'): number {
-    switch (difficulty) {
-      case 'EASY': return Math.random() * 10000 + 15000; // 15-25s
-      case 'NORMAL': return Math.random() * 8000 + 12000;  // 12-20s
-      case 'HARD': return Math.random() * 7000 + 9000;   // 9-16s
-      case 'NIGHTMARE': return Math.random() * 6000 + 7000; // 7-13s
-    }
+    const intervals = {
+      EASY: [9000, 14000],
+      NORMAL: [6500, 10000],
+      HARD: [4500, 7000],
+      NIGHTMARE: [2500, 4000],
+    } satisfies Record<typeof difficulty, [number, number]>;
+    const [minimum, maximum] = intervals[difficulty];
+    return Math.random() * (maximum - minimum) + minimum;
+  }
+
+  private getAnomalyDuration(duration: number, difficulty: 'EASY' | 'NORMAL' | 'HARD' | 'NIGHTMARE'): number {
+    const durationSettings = {
+      EASY: { multiplier: 0.9, minimum: 12000 },
+      NORMAL: { multiplier: 0.8, minimum: 10000 },
+      HARD: { multiplier: 0.7, minimum: 8000 },
+      NIGHTMARE: { multiplier: 0.55, minimum: 7000 },
+    } satisfies Record<typeof difficulty, { multiplier: number; minimum: number }>;
+    const { multiplier, minimum } = durationSettings[difficulty];
+    return Math.max(minimum, duration * multiplier);
   }
 
   private scheduleNextSpawn() {
@@ -54,7 +67,7 @@ export class AnomalyEngine {
     const state = useGameStore.getState();
     if (state.gameStatus !== 'PLAYING') return;
 
-    const maxActive = difficulty === 'NIGHTMARE' ? 2 : 1;
+    const maxActive = difficulty === 'NIGHTMARE' ? 3 : difficulty === 'HARD' ? 2 : 1;
     if (state.activeAnomalies.length >= maxActive) return;
 
     // Filter definitions matching difficulty
@@ -63,10 +76,8 @@ export class AnomalyEngine {
       const cameraHasAnomaly = state.activeAnomalies.some(a => a.cameraId === def.cameraId);
       if (cameraHasAnomaly) return false;
 
-      // Check difficulty criteria
-      if (def.minimumDifficulty === 'NIGHTMARE' && difficulty !== 'NIGHTMARE') return false;
-      if (def.minimumDifficulty === 'HARD' && difficulty === 'EASY') return false;
-      return true;
+      const difficultyRank = { EASY: 0, NORMAL: 1, HARD: 2, NIGHTMARE: 3 };
+      return difficultyRank[def.minimumDifficulty] <= difficultyRank[difficulty];
     });
 
     if (validDefs.length === 0) return;
@@ -85,6 +96,7 @@ export class AnomalyEngine {
     }
 
     const runtimeId = `ANOM_${Math.random().toString(36).substring(2, 9)}`;
+    const duration = this.getAnomalyDuration(selectedDef.duration, difficulty);
     const newAnomaly: Anomaly = {
       id: selectedDef.id,
       runtimeId,
@@ -94,7 +106,7 @@ export class AnomalyEngine {
       description: selectedDef.description,
       severity: selectedDef.severity,
       spawnWeight: selectedDef.spawnWeight,
-      duration: selectedDef.duration,
+      duration,
     };
 
     useGameStore.getState().addAnomaly(newAnomaly);
@@ -106,7 +118,7 @@ export class AnomalyEngine {
         currentState.expireAnomaly(runtimeId);
       }
       this.expirationTimers.delete(runtimeId);
-    }, selectedDef.duration);
+    }, duration);
 
     this.expirationTimers.set(runtimeId, expTimer);
   }
