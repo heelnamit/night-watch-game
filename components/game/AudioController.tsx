@@ -212,20 +212,17 @@ export default function AudioController() {
       if (prevStatusRef.current === 'MENU' || prevStatusRef.current === 'PAUSED') {
         soundEngine.playClick();
       }
-    } else if (gameStatus === 'GAME_OVER') {
+    } else {
       soundEngine.stopAmbient();
-      soundEngine.playGameOver();
-    } else if (gameStatus === 'VICTORY') {
-      soundEngine.stopAmbient();
-      soundEngine.playVictory();
-    } else if (gameStatus === 'PAUSED') {
-      soundEngine.stopAmbient();
+      if (gameStatus === 'GAME_OVER') {
+        soundEngine.playGameOver();
+      } else if (gameStatus === 'VICTORY') {
+        soundEngine.playVictory();
+      }
     }
     prevStatusRef.current = gameStatus;
 
-    return () => {
-      // Cleanup on unmount
-    };
+    return () => soundEngine.stopAmbient();
   }, [gameStatus]);
 
   const toggleMute = useCallback(() => {
