@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { soundEngine } from '../components/game/AudioController';
 
 export type GameStatus = 'MENU' | 'PLAYING' | 'PAUSED' | 'GAME_OVER' | 'VICTORY';
 
@@ -135,6 +136,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     const anomaly = activeAnomalies.find(a => a.cameraId === cameraId);
 
     if (anomaly) {
+      soundEngine.playSuccess();
       set({
         activeAnomalies: activeAnomalies.filter(a => a.runtimeId !== anomaly.runtimeId),
         score: Math.max(0, score + 100),
@@ -142,6 +144,7 @@ export const useGameStore = create<GameState>((set, get) => ({
         activityLog: [...activityLog, { id: Math.random().toString(), message: `Correctly reported anomaly on ${cameraId}.`, type: 'success' }]
       });
     } else {
+      soundEngine.playError();
       set({
         score: Math.max(0, score - 50),
         falseReports: falseReports + 1,
@@ -159,6 +162,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   expireAnomaly: (runtimeId) => set(state => {
     const anomaly = state.activeAnomalies.find(a => a.runtimeId === runtimeId);
     if (!anomaly) return state;
+    soundEngine.playError();
     return {
       activeAnomalies: state.activeAnomalies.filter(a => a.runtimeId !== runtimeId),
       missedAnomalies: state.missedAnomalies + 1,
@@ -167,7 +171,10 @@ export const useGameStore = create<GameState>((set, get) => ({
     };
   }),
 
-  setSelectedCameraId: (id) => set({ selectedCameraId: id }),
+  setSelectedCameraId: (id) => {
+    soundEngine.playClick();
+    set({ selectedCameraId: id });
+  },
 
   tick: () => {
     const state = get();
