@@ -1,37 +1,65 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Night Watch
 
-## Getting Started
+A browser-based anomaly detection game set in Blackwood Apartments. Monitor the security cameras, spot changes in the building, and report anomalies before they disappear.
 
-First, run the development server:
+## How to play
+
+1. Select **Start Shift** from the main menu.
+2. Monitor the four camera feeds: main entrance, apartment corridor, basement, and parking area.
+3. Select a camera and choose **Report Anomaly** when you spot something unusual.
+4. Finish the six-minute shift to win. Missing three anomalies ends the shift.
+
+The game becomes more challenging as the shift progresses. Anomalies appear for a limited time, so inspect the camera feeds carefully.
+
+### Scoring
+
+- Correct report: **+100 points**
+- Incorrect report: **−50 points** (score cannot drop below zero)
+- Missed anomaly: lose one of your three lives
+
+The High Scores menu keeps the top ten results in the current browser's local storage. Scores are not shared across browsers or devices.
+
+## Run locally
+
+### Requirements
+
+- Node.js (LTS recommended)
+- npm
+
+### Install and start
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Available scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Command | Description |
+| --- | --- |
+| `npm run dev` | Start the Next.js development server |
+| `npm run build` | Create a production build |
+| `npm start` | Run the production server (after `npm run build`) |
+| `npm run lint` | Run ESLint |
 
-## Learn More
+## Tech stack
 
-To learn more about Next.js, take a look at the following resources:
+- Next.js 16 with the App Router
+- React 19 and TypeScript
+- Zustand for game state
+- Tailwind CSS for styling
+- Framer Motion for animations
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Project structure
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-# night-watch-game
+```text
+app/                  Next.js routes and global styles
+components/game/      Camera feeds, controls, status, and game screens
+components/menu/      Main menu and informational modals
+data/                 Camera configuration
+game/                 Anomaly definitions and spawn engine
+store/                Zustand game state and scoring
+types/                Shared TypeScript types
+```
