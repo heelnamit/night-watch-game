@@ -1,7 +1,11 @@
 'use client';
 import Link from 'next/link';
+import GameTimer from './GameTimer';
+import { useGameStore } from '../../store/gameStore';
 
 export default function GameHeader() {
+  const gameStatus = useGameStore(state => state.gameStatus);
+
   return (
     <header className="flex items-center justify-between p-4 border-b border-gray-800 bg-accent/50">
       <div>
@@ -10,10 +14,10 @@ export default function GameHeader() {
       </div>
       <div className="flex items-center gap-4">
         <span className="flex items-center gap-1 text-xs text-cctv-green">
-          <span className="w-2 h-2 rounded-full bg-cctv-green animate-pulse"></span>
-          SYSTEM ONLINE
+          <span className={`w-2 h-2 rounded-full ${gameStatus === 'PLAYING' ? 'bg-cctv-green animate-pulse' : 'bg-gray-500'}`}></span>
+          {gameStatus === 'PLAYING' ? 'SYSTEM ONLINE' : 'SYSTEM PAUSED'}
         </span>
-        <span className="font-mono text-sm text-gray-300">12:00 AM</span>
+        <GameTimer />
       </div>
       <Link href="/" className="px-4 py-2 bg-warning text-white font-bold text-xs uppercase hover:bg-red-900 transition-colors">
         Exit Shift
